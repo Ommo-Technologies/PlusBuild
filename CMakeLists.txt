@@ -302,6 +302,7 @@ OPTION(PLUS_USE_PICOSCOPE "Provide support for PicoScope 2xxx series oscilloscop
 OPTION(PLUS_USE_GENERIC_SENSOR_TRACKER "Provide support for generic sensor data collection" OFF)
 OPTION(PLUS_USE_AZUREKINECT "Provide support for Azure Kinect cameras" OFF)
 OPTION(PLUS_USE_REVOPOINT3DCAMERA "Provide support for Revopoint 3D cameras" OFF)
+OPTION(PLUS_USE_OMMO "Provide support for Ommo devices" OFF)
 
 # ---------- Other devices ------------
 OPTION(PLUS_USE_TextRecognizer "Enable the text recognizer virtual device" OFF)
@@ -432,6 +433,14 @@ IF(CMAKE_EXTRA_GENERATOR)
 ELSE()
   SET(gen "${CMAKE_GENERATOR}")
 ENDIF()
+
+# Common install prefix for external projects (used by gRPC, protobuf, etc.)
+# Override by passing -DPLUS_EXTERNALS_PREFIX=... to CMake if you want a different location.
+# Building GRPC brings in multiple packages and we want to keep them all in the build tree
+if(NOT DEFINED PLUS_EXTERNALS_PREFIX)
+  set(PLUS_EXTERNALS_PREFIX "${CMAKE_BINARY_DIR}/externals" CACHE PATH "Common install prefix for external projects")
+endif()
+message(STATUS "PLUS_EXTERNALS_PREFIX=${PLUS_EXTERNALS_PREFIX}")
 
 #------------------------------------------------------------------------------
 # Specify external projects
@@ -910,6 +919,12 @@ IF(PLUS_USE_REVOPOINT3DCAMERA)
   IF(NOT REVOPOINT3DSDK_FOUND)
     MESSAGE(FATAL_ERROR "This project requires RevoPoint 3D SDK for supporting the Revopoint 3D cameras. One of the components is missing. Please verify configuration or turn off PLUS_USE_REVOPOINT3DCAMERA.")
   ENDIF()
+ENDIF()
+
+IF(PLUS_USE_OMMO)
+  INCLUDE(SuperBuild/External_spdlog.cmake)
+  INCLUDE(SuperBuild/External_grpc.cmake)
+  INCLUDE(SuperBuild/External_Ommo.cmake)
 ENDIF()
 
 #------------------------------------------------------------------------------
